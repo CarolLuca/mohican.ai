@@ -46,8 +46,8 @@ def chromatic_score(image):
 
 def chromatic_level(image):
     """
-    Function that outputs a number from 0 to 10
-    representing the chromatic level of an image
+    Function that outputs a positive number smaller 
+    than 10 representing the chromatic level of an image
 
     Parameters
     ==========
