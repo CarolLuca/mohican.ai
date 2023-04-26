@@ -1,24 +1,29 @@
 import re
+import os
 import requests
-from selenium import webdriver
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+import time
+from image_utils import random_image_name, chromatic_level
+from level_utils import ComplexityLevel
 
 
 def number_of_images(url):
     """
     Function that outputs the number of images
-    on a certain website
+    on a certain website.
 
     Parameters
     ==========
     url
         Required, represents the link to the
-        desired website
+        desired website.
 
     Returns
     =======
     num_images
-        The number of images
+        The number of images.
     """
     response = requests.get(url)
     # print(response.text)
@@ -38,36 +43,63 @@ def number_of_images(url):
     return num_images
 
 
-def save_print(url, image):
+def save_print(url, image, gpu=False):
     """
     Function that save at a designated
-    path the screenshot of a site's page
+    path the screenshot of a site's page.
 
     Parameters
     ==========
     url
         Required, represents the link to the
-        desired website
+        desired website.
+
+    image
+        Required, represents the path to the
+        image that contains the obtained screenshot.
+
+    gpu
+        Optional, if not provided, set to False.
 
     Returns
     =======
     None
     """
-    driver = webdriver.Chrome()
+    # Launch Google Chrome in headless mode
+    options = webdriver.ChromeOptions()
+    options.add_argument('--headless')
+    if gpu == False:
+        options.add_argument('--disable-gpu')
+    driver = webdriver.Chrome(options=options)
+
+    # Navigate to the webpage
     driver.get(url)
-    driver.get_screenshot_as_file(image)
+
+    # Scroll to the bottom of the page to trigger the lazy loading of any images or elements
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    time.sleep(1)
+
+    # Take a screenshot of the whole page
+    screenshot = driver.find_element_by_tag_name('body').screenshot_as_png
+
+    # Save the screenshot to a file
+    with open(image, 'wb') as f:
+        f.write(screenshot)
+
+    # Quit the browser
+    driver.quit()
 
 
 def informational_scores(url):
     """
     Function that outputs the informational
-    scores of a certain site
+    scores of a certain site.
 
     Parameters
     ==========
     url
         Required, represents the link to the
-        desired website
+        desired website.
 
     Returns
     =======
@@ -142,18 +174,18 @@ def informational_scores(url):
 def informational_level(url):
     """
     Function that outputs the informational
-    level of a certain site, out of 10
+    level of a certain site, out of 100.
 
     Parameters
     ==========
     url
         Required, represents the link to the
-        desired website
+        desired website.
 
     Returns
     =======
     complexity_level
-        The informational level out of 10
+        The informational level out of 100.
     """
     # Get the complexity scores
     text_volume_score, content_organization_score, content_format_score, technical_features_score, audience_score = informational_scores(
@@ -169,4 +201,36 @@ def informational_level(url):
         content_format_weight * content_format_score) + (technical_features_weight * technical_features_score) + (audience_weight * audience_score)
 
     # Return the informational level
-    return complexity_level
+    return int(10*complexity_level)
+
+
+def complexity_level(url):
+    """
+    Function that outputs the complexity level
+    of the site, formed by the two levels described.
+
+    Parameters
+    ==========
+    url
+        Required, represents the link to the
+        desired site to be analyzed.
+
+    Returns
+    =======
+    complexity_levels
+        An ComplexityLevel object containing
+        the complexity levels of the analyzed site.
+    """
+    # Compute chromatic level of the site
+    filename = random_image_name()
+    save_print(url, "./" + str(filename))
+    chromatic_level = chromatic_level(filename)
+    location = "."
+    path = os.path.join(location, filename)
+    os.remove(path)
+
+    # Compute informational level of the site
+    informational_level = informational_level(url)
+
+    # Return the complexity level
+    return ComplexityLevel(chromatic_level, informational_level)

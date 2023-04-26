@@ -1,22 +1,47 @@
 import cv2
+import re
 import numpy as np
+import names
+
+
+def random_image_name(extension=".png"):
+    """
+    Function that outputs a random name
+    for an image file.
+
+    Parameters
+    ==========
+    extension
+        Optional, represents the type of
+        the image file.
+
+    Returns
+    =======
+    filename
+        The name of desired file.
+    """
+    filename = re.sub(" ", "__", names.get_full_name())
+    return str(filename) + extension
 
 
 def chromatic_score(image):
     """
     Function that outputs a float number associated
-    to the image's chromatic score
+    to the image's chromatic score.
 
     Parameters
     ==========
     image
         Required, represents the path to the image
-        file to be analyzed
+        file to be analyzed.
 
     Returns
     =======
     colorfulness
-        The chromatic score
+        The chromatic score, which according to
+        the cited article is between 0 and around
+        109 (for simplity and safety we will consider
+        the maximum to be 120).
 
     References
     ==========
@@ -47,47 +72,47 @@ def chromatic_score(image):
 def chromatic_level(image):
     """
     Function that outputs a positive number smaller 
-    than 10 representing the chromatic level of an image
+    than 100 representing the chromatic level of an image.
 
     Parameters
     ==========
     image
         Required, represents the path to the image
-        file to be analyzed
+        file to be analyzed.
 
     Returns
     =======
     level
-        The chromatic level on a scale from 0 to 10
+        The chromatic level on a scale from 0 to 100.
     """
+    # Compute the score between 0 and 120
     score = chromatic_score(image)
-    return 0
 
-    # ... Work in progress ...
+    return int(score/1.2)
 
 
 def most_correlated(input_image, candidate_images):
     """
     Function that outputs in order of correlation
     the candidate images in respect to the input
-    image
+    image.
 
     Parameters
     ==========
     input_image
         Required, represents the path to the image
         file that is used as a fixed point in searching
-        the image that fits the best with it
+        the image that fits the best with it.
 
     candidate_images
         Required, represents the array of candidate
         images that are to be ordered based on the
-        correlation with the input image
+        correlation with the input image.
 
     Returns
     =======
     ordered_images
-        The ordered images based on correlation
+        The ordered images based on correlation.
     """
     # Load input image
     input_image = cv2.imread(input_image)
