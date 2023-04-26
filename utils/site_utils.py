@@ -3,10 +3,9 @@ import os
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 import time
-from image_utils import random_image_name, chromatic_level
-from level_utils import ComplexityLevel
+from utils.image_utils import random_image_name, chromatic_level
+from utils.level_utils import ComplexityLevel
 
 
 def number_of_images(url):
@@ -224,7 +223,7 @@ def complexity_level(url):
     # Compute chromatic level of the site
     filename = random_image_name()
     save_print(url, "./" + str(filename))
-    chromatic_level = chromatic_level(filename)
+    site_chromatic_level = chromatic_level(filename)
     location = "."
     path = os.path.join(location, filename)
     os.remove(path)
@@ -233,4 +232,4 @@ def complexity_level(url):
     informational_level = informational_level(url)
 
     # Return the complexity level
-    return ComplexityLevel(chromatic_level, informational_level)
+    return ComplexityLevel(site_chromatic_level, informational_level)
